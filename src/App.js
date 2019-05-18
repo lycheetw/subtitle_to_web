@@ -1,26 +1,48 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import { IntlProvider, addLocaleData } from 'react-intl';
+import Converter from './components/Converter';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import enLocaleData from 'react-intl/locale-data/en';
+import zhLocaleData from 'react-intl/locale-data/zh';
+import LocalUtils from './locales/LocalUtils'
+
+
+export default class App extends React.Component {
+    constructor(props) {
+      super(props);
+      addLocaleData([...enLocaleData, ...zhLocaleData]);
+      this.onLanguageChanged = this.onLanguageChanged.bind(this);
+      const locale = LocalUtils.chooseDefaultLocal();
+      const messages = LocalUtils.chooseLocaleMessages(locale);
+      this.state = {
+        locale: locale,
+        messages: messages
+      };
+    }
+
+    onLanguageChanged(languageCode) {
+      this.setState({
+        locale: languageCode,
+        messages: LocalUtils.chooseLocaleMessages(languageCode)
+      });
+      LocalUtils.saveLocal(languageCode);
+    }
+
+
+    render() {
+      
+      return (
+        <IntlProvider locale={this.state.locale} messages={this.state.messages}>
+          <Router>
+            <div className="container">
+              <Route 
+                exact path="/" 
+                render={(props) => <Converter {...props} onLanguageChanged={this.onLanguageChanged}/>}
+              />
+            </div>
+          </Router>
+        </IntlProvider>
+      )
+    }
 }
-
-export default App;
